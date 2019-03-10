@@ -9,7 +9,7 @@
        veid: 搬瓦工VPS的veid(必须)  
        api_key: 搬瓦工VPS的API_KEY(必须)  
        monitored_conditions:(可选)  
-           - VPS_STAT(可选，VPS运行状态)  
+           - VPS_STATE(可选，VPS运行状态)  
            - CURRENT_BANDWIDTH_USED(可选，流量情况)  
            - RAM_USED(可选，已用内存)  
            - DISK_USED(可选，已用硬盘)  
