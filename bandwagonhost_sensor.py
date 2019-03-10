@@ -14,16 +14,21 @@ DEFAULT_NAME = '搬瓦工状态'
 CONF_VEID = 'veid'
 CONF_API_KEY = 'api_key'
 MONITORED_CONDITIONS = {
-    'ATTR_CURRENT_BANDWIDTH_USED': ['Current Bandwidth Used', '',
+    'VPS_STATE' : ['Vps State','','mdi:cloud-search'],
+    'CURRENT_BANDWIDTH_USED': ['Current Bandwidth Used', '',
                                   'mdi:cloud-tags'],
-    'ATTR_DISK_USED': ['DISK USED', '', 'mdi:disc'],
-    'ATTR_RAM_USDE':['RAM USED', '', 'mdi:responsive'],
+    'DISK_USED': ['DISK USED', '', 'mdi:disc'],
+    'RAM_USED':['RAM USED', '', 'mdi:responsive'],
+    'SWAP_USED':['SWAP USED', '', 'mdi:responsive'],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_VEID): cv.string,
     vol.Required(CONF_API_KEY): cv.string,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+    vol.Optional(CONF_MONITORED_CONDITIONS,
+                 default=list(MONITORED_CONDITIONS)):
+    vol.All(cv.ensure_list, [vol.In(MONITORED_CONDITIONS)])
 })
 
 
@@ -34,7 +39,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     veid = config.get(CONF_VEID)
     api_key = config.get(CONF_API_KEY)
     sensor_name = config.get(CONF_NAME)
-    monitored_conditions = list(MONITORED_CONDITIONS)
+    monitored_conditions = config.get(CONF_MONITORED_CONDITIONS)
 
     sensors = []
 
@@ -109,12 +114,16 @@ class BandwagonHostSensor(Entity):
             response = requests.get(API_URL + 'veid=' + self._veid + '&api_key=' + self._api_key)
             json_obj = json.loads(response.text)
 
-            if self._condition == 'ATTR_CURRENT_BANDWIDTH_USED':
-                self._state = str(round(json_obj['data_counter']/1024/1024/1024,2)) + 'GB/1000GB'
-            elif self._condition == 'ATTR_DISK_USED':
-                self._state = str(round(json_obj['ve_used_disk_space_b']/1024/1024/1024,2)) + 'GB/20GB'
-            elif self._condition == 'ATTR_RAM_USDE':
-                self._state = str(round((json_obj['plan_ram'] - json_obj['mem_available_kb']*1024)/1024/1024/1024,2)) + 'GB/1GB'
+            if self._condition == 'CURRENT_BANDWIDTH_USED':
+                self._state = str(round(json_obj['data_counter']/1024/1024/1024,2)) + 'GB/' + str(round(json_obj['plan_monthly_data']/1024/1024/1024,0)) + 'GB'
+            elif self._condition == 'DISK_USED':
+                self._state = str(round(json_obj['ve_used_disk_space_b']/1024/1024/1024,2)) + 'GB/' + str(round(json_obj['plan_disk']/1024/1024/1024,0)) + 'GB'
+            elif self._condition == 'RAM_USED':
+                self._state = str(round((json_obj['plan_ram'] - json_obj['mem_available_kb']*1024)/1024/1024/1024,2)) + 'GB/' + str(round(json_obj['plan_ram']/1024/1024/1024,0)) + 'GB'
+            elif self._condition == 'VPS_STATE':
+                self._state = json_obj['ve_status']
+            elif self._condition == 'SWAP_USED':
+                self._state = str(round((json_obj['swap_total_kb'] - json_obj['swap_available_kb'])/1024,2)) + 'MB/' + str(round(json_obj['swap_total_kb']/1024,0)) + 'MB'
             else:
                 self._state = "something wrong"
         except ConnectionError:
