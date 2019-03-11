@@ -14,7 +14,11 @@
            - RAM_USED(可选，已用内存)  
            - DISK_USED(可选，已用硬盘)  
            - SWAP_USED(可选，已用SWAP)  
-  以上信息请从搬瓦工的控制页面获取。
+    以上信息请从搬瓦工的控制页面获取。
 
 效果如下：  
 ![image](https://github.com/lzybetter/homeassistant-bandwagonhost/raw/master/bandwagonhost.png)
+
+
+
+为了防止因为api请求过于频繁，而被搬瓦工封号，传感器每20分钟更新一次。
