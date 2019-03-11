@@ -2,11 +2,14 @@ import logging
 
 from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_MONITORED_CONDITIONS, CONF_NAME
+from homeassistant.const import CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_START
 import voluptuous as vol
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 import requests
 import json
+
+from homeassistant.core import callback
+from datetime import timedelta
 
 _Log=logging.getLogger(__name__)
 
@@ -22,6 +25,8 @@ MONITORED_CONDITIONS = {
     'SWAP_USED':['SWAP USED', '', 'mdi:responsive'],
 }
 
+SCAN_INTERVAL = timedelta(seconds=1200)
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_VEID): cv.string,
     vol.Required(CONF_API_KEY): cv.string,
@@ -34,7 +39,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 API_URL = "https://api.64clouds.com/v1/getLiveServiceInfo?"
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+
+async def async_setup_platform(hass, config, async_add_entities,
+                               discovery_info=None):
     """Setup the sensor platform."""
     veid = config.get(CONF_VEID)
     api_key = config.get(CONF_API_KEY)
@@ -47,7 +54,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
         sensors.append(BandwagonHostSensor(sensor_name, veid, api_key, condition))
 
-    add_entities(sensors, True)
+    async_add_entities(sensors)
 
 
 class BandwagonHostSensor(Entity):
@@ -70,6 +77,15 @@ class BandwagonHostSensor(Entity):
         self._condition_name = condition_info[0]
         self._units = condition_info[1]
         self._icon = condition_info[2]
+
+
+    async def async_added_to_hass(self):
+        """Set initial state."""
+        @callback
+        def on_startup(_):
+            self.async_schedule_update_ha_state(True)
+
+        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, on_startup)
 
     @property
     def name(self):
@@ -102,9 +118,6 @@ class BandwagonHostSensor(Entity):
     def unit_of_measurement(self):
         self._units
 
-
-
-
     def update(self):
         """Fetch new state data for the sensor.
 
@@ -127,4 +140,4 @@ class BandwagonHostSensor(Entity):
             else:
                 self._state = "something wrong"
         except ConnectionError:
-                _Log.error("搬瓦工：连接错误，请检查网络")
+            _Log.error("搬瓦工：连接错误，请检查网络")
