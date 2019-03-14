@@ -13,6 +13,7 @@ from datetime import timedelta
 
 _Log=logging.getLogger(__name__)
 
+REQUIREMENTS = ['requests']
 DEFAULT_NAME = '搬瓦工状态'
 CONF_VEID = 'veid'
 CONF_API_KEY = 'api_key'
