@@ -2,7 +2,9 @@
 用于home assistant平台的搬瓦工状态监视器,可以监视搬瓦工VPS的流量、内存和硬盘使用情况。  
 
 ## 安装
-请将本工程文件克隆到 `<config>/custom_components/` 下
+请先在<config>/custom_components/文件夹建立homeassistant-bandwagonhost文件夹
+
+再将sensor.py文件复制到上述文件夹下
 
 ## 配置 
 ```yaml
