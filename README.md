@@ -4,7 +4,7 @@
 ## 安装
 请先在<config>/custom_components/文件夹建立homeassistant-bandwagonhost文件夹
 
-再将sensor.py文件复制到上述文件夹下
+再将本项目中homeassistant-bandwagonhost目录下所有文件复制到上述文件夹下
 
 ## 配置 
 ```yaml
